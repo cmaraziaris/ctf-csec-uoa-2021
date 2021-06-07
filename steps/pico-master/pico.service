@@ -1,0 +1,21 @@
+[Unit]
+Description=pico
+After=network.target
+
+# forever attempt to restart
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+
+# always restart if dies, after 1 sec
+Restart=always
+RestartSec=1
+
+User=www-data
+LimitNOFILE=100000
+
+ExecStart=/usr/local/pico/server
+
+[Install]
+WantedBy=multi-user.target
