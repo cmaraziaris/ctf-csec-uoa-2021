@@ -1,0 +1,15 @@
+POST /ultimate.html HTTP/1.1
+Host: localhost:8000
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Authorization: Basic dGVzdDp0ZXN0
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Cache-Control: max-age=0, no-cache
+Content-Length: 7
+Origin: http://localhost:8000
+Pragma: no-cache
+
+kek=kek
