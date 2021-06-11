@@ -1,5 +1,20 @@
 
 
+MAGIC NUMBERS: 2184 232
+
+
+target stack: 0xffffd740   --- known stack: 0xffffd8c8
+
+ffffd828
+
+392
+
+target serve ultimate: 0x5655689d  --- known address : 56556015  : 0x56555f91
+
+2316
+
+
+
 check auth: expected return addr -> 0x5655689d
 
 check auth : $ python3 create_request_auth.py 31 %x 8000 1 | socat - TCP4:localhost:8000
