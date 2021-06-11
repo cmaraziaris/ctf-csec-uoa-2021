@@ -2,8 +2,15 @@
 
 MAGIC NUMBERS: 2184 232
 
-
 Important: extract offsets from *linux02*
+
+Useful Commands:
+
+$ socat -d -d -d TCP-LISTEN:8000,fork SOCKS4A:localhost:zwt6vcp6d5tao7tbe3je6a2q4pwdfqli62ekuhjo55c7pqlet3brutqd.onion:80,socksport=9150
+
+$ make && mv server ys13server && gdb ./ys13server --command=commands.gdb && kill -9 `pgrep -f "ys13server"`
+
+----------------------------------------------------------------------
 
 target stack: 0xffffd740   --- known stack: 0xffffd8c8
 
@@ -35,6 +42,7 @@ serve_ultimate : addr --> 0x5655717d
 so... : fixed_point_addr + 0x8e0 = serve_ult_address
 
 
+local (harry) magic nums: 2272 232
 
 
 python3 create_request_auth.py 31 %x 8000 1 | socat - TCP4:localhost:8000

