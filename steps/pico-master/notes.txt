@@ -3,6 +3,8 @@
 MAGIC NUMBERS: 2184 232
 
 
+Important: extract offsets from *linux02*
+
 target stack: 0xffffd740   --- known stack: 0xffffd8c8
 
 ffffd828
