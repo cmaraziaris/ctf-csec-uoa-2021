@@ -131,7 +131,7 @@ After a successful log-in, we were greeted by a not-so-friendly message:
 ```
 Hacked by 5l0ppy 8uff00n5 
 ```
-Thus we figured that **5l0ppy 8uff00n5** had stolen the "Plan X" server files.
+Thus we figured that **5l0ppy 8uff00n5** stole the "Plan X" server files.
 
 ## Step 3
 
