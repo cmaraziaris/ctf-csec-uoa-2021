@@ -72,6 +72,8 @@ Reading the note that George has left we got interested in the meaning of the la
 
 
 ## Step 2
+Getting access to the blog file, allowed us to get the link for an onion server that required username and password (we did not yet acquired). According to the relative post the server src code was in a github repo, chatziko/pico, so we cloned it and installed it in our machines. The moment we compiled the code we noticed a warning (unsual for chatziko coding standards) with a `-Wformat-security` flag, so we investigate it a little further. The first thing we bumped into was [Format String Software Attack](https://owasp.org/www-community/attacks/Format_string_attack) by OWASP so we knew we did good. A couple minutes later we tried the described attack and we passed the following username `%x %x %x %x %x %x %s` and got the username `admin` and the password md5 hash `e5614e27f3c21283ad532a1d23b9e29d` that we cracked by putting it in famous online md5 crackers and got  the password `bob's your uncle`.
+
 
 ## Step 3
 
