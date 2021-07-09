@@ -137,4 +137,57 @@ Thus we figured that **5l0ppy 8uff00n5** stole the "Plan X" server files.
 
 ## Step 4
 
+For step 4 we used the script of the previous step and adjusted the final payload, so that we can read any file we want, by just passing the file-path, as an cmd-argument.
+To exploit the script we followed 2 different approaches. Both of them was based on the fact that stack was non-executable.
+
+The first approach used the `send_file()` function from the server-app source code. This was a work-around for the ASLR mitigation that messed up system's offset, but it was not perfect still. By executing the send file we could not get an `HTTP OK` response so the output was never returned. This could be easily solved by just calling the `serve_ultimate()` before we overwrite the stack to call the `send_file()` routine. The payload was the same as in step 3 but with some extra small steps. Specifically we made sure that after `serve_ultimate()` the program would return into `send_file()` and we could set the argument in the stack, by just adding its address in the next 4 bytes and the actual argument in the last bytes of the payload. We found out how to do this and why it should work in [one of the buffer overflow slides' references](https://css.csail.mit.edu/6.858/2014/readings/return-to-libc.pdf). 
+
+The stack after loading our payload was something like the following:
+          |                     |                     |          |                         |                    |     |
+top stack | payload from step 3 | return to send_file | fake eip | send_file_argument_addr | send_file argument | ... | bottom of the stack
+          |                     |                     |          |                         |                    |     |
+
+The second approach was to try executing libc code, specifically the `system()` routine in to execute shell code and pass a `cat` command. At first we could not find a fixed address in the programm since ASLR, messed all the offsets we acquired from __gcc__, run in __linux02__ machine. After a couple of tries we found a common fixed address between gcc-run and normal run of the server, we calculated the offset from the known stack address and found the libc return address we needed. At this point, we could execute arbitary code and get the terminal-output in the http response. FULL POWUH <3 <3  
+
+Again the stack would look like that:
+          |                     |                     |          |                      |                 |     |
+top stack | payload from step 3 | return to system    | fake eip | system_argument_addr | system argument | ... | bottom of the stack
+          |                     |                     |          |                      |                 |     |
+
+
+So after all that we displayed the containing of z.log and got
+
+```
+Computing, approximate answer: 41.998427123123
+```
+
 ## Step 5
+
+For the fifth and last step we had to solve 2 problems, first of which was to find the next move in this particular chess sequence
+```
+1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4 Nd7 5.Ng5 Ngf6 6.Bd3 e6 7.N1f3 h6 8.Nxe6 Qe7 9.0-0 fxe6 10.Bg6+ Kd8 11.Bf4 b5 12.a4 Bb7 13.Re1 Nd5 14.Bg3 Kc8 15.axb5 cxb5 16.Qd3 Bc6 17.Bf5 exf5 18.Rxe7 Bxe7
+```
+
+which was `19. c4`
+
+The second task was to find the machine IP. To do that we used the second version of step 4, using system and pass the following cmd-command as an argument:
+
+```bash
+dig +short myip.opendns.com @resolver1.opendns.com
+```
+
+We got the IP: `54.159.81.179`, hence the final answer is 
+```
+c4-54.159.81.179
+```
+
+
+## Final Thoughts
+
+We wrapped up all the code for steps 3,4,5 in the relative directory and created a script, that contains all the hardcoded offsets of the programs stack. The program also executes the proper socat command to enable the communication with the onion server. The script that answers the last 3 steps can be run with 
+
+```
+./run.sh
+```
+
+__Remember to open-up tor browser__ before running the script. 
