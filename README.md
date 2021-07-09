@@ -313,7 +313,7 @@ c4-54.159.81.179
 We wrapped up all the code for steps 3,4,5 in the relative directory and created a script, that contains all the hardcoded offsets of the programs stack. The program also executes the proper socat command to enable the communication with the onion server. The script that answers the last 3 steps can be run with 
 
 ```
-./run.sh
+bash run.sh
 ```
 
 __Remember to open-up tor browser__ before running the script. 
