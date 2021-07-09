@@ -135,6 +135,130 @@ Thus we figured that **5l0ppy 8uff00n5** stole the "Plan X" server files.
 
 ## Step 3
 
+For this step, there wasn't a clear sign indicating where the answer was. However, we noticed that while we had access to the `/index.html` page using the credentials found in the previous step, we weren't able get access to the file `/ultimate.html`. A *comment*  in the source code explained the reason:
+```c
+ROUTE_POST("/ultimate.html") {
+    // An extra layer of protection: require an admin password in POST
+    Line admin_pwd[1];
+    read_file("/etc/admin_pwd", admin_pwd, 1);
+    
+    char* given_pwd = post_param("admin_pwd");
+    int allowed = given_pwd != NULL && strcmp(admin_pwd[0], given_pwd) == 0;
+
+    if (allowed)
+      serve_ultimate();
+    else
+      printf("HTTP/1.1 403 Forbidden\r\n\r\nForbidden");
+
+    free(given_pwd);
+  }
+```
+Sadly, the `admin_pwd[1]` required, was not the one we had already discovered.
+
+Having no other obvious way to proceed, we decided to *get ultimate.html or die trying*.
+We noticed that all we had to do, was to somehow be able to call `serve_ultimate()` through the normal flow of control of the pico-server. The only function calls during the execution of `ROUTE_POST("/ultimate.html")` are:
+1. read_file
+2. post_param
+3. strcmp
+4. serve_ultimate
+5. printf
+6. free
+
+Having a glimpse at the `post_param()` source code, we noticed a suspicious point of possible exploit:
+```c
+// Parses and returns (in new memory) the value of a POST param
+char* post_param(char* param_name) {
+  // These are provided by pico:
+  //  payload      : points to the POST data
+  //  payload_size : the size of the paylaod
+
+  // The POST data are in the form name1=value1&name2=value2&...
+  // We need NULL terminated strings, so change '&' and '=' to '\0'
+  // (copy first to avoid changing the real payload).
+
+  char post_data[payload_size+1];     // dynamic size, to ensure it's big enough
+  strcpy(post_data, payload);
+
+  for (char* c = post_data; *c != '\0'; c++)
+    if (*c == '&' || *c == '=')
+      *c = '\0';
+```
+In attempt to solve the mystery surrounding the origin of the `payload` variable we found that `payload` indeed contained the POST request data, however `payload_size` value was determined in a pretty questionable fashion: 
+```c
+    t += 3; // now the *t shall be the beginning of user payload, after \r\n
+    t2 = request_header("Content-Length"); // and the related header if there is
+    payload = t;
+    payload_size = t2 ? atol(t2) : (rcvd - (t - buf));
+```
+Namely, `payload_size` could be set by the `Content-Length` header of any malicious HTTP request.
+
+With these discoveries in mind, the attack scheme was more than obvious in our minds, and it was none other than:
+
+*Hacking into the university's infrastructure and set our course grade to the maximum.*
+
+However, we tried a more modest approach, the *buffer overflow* one.
+The idea was quite simple: send a POST http request, with the malicious payload as the post data and a suitably crafted `Content-Length` header, that would initialize the `post_data[]` buffer with less bytes than the post-data ones, that would later be copied to the buffer via the `strcpy` call - *buffer overflow*. Our payload would target the return address of `post_param` so that, instead of returning to `main()`, it would return to our top secret target,`serve_ultimate()`.
+
+A couple things were required in order to perform the attack:
+* The `serve_ultimate` address in the **.text** segment of the program - easily found using the command `disas serve_ultimate` in GDB.
+* the canary
+
+During the development of the attack, we knew that the server was running in a specific machine, to which we had access via `ssh`. However, we were constrained by the fact that we could only test our attack with the help of GDB. Thus, we were required to make our exploit generic enough, so that it would work with any memory layout (since executing through GDB produces a different memory layout than a clean execution).
+
+This problem is solved by making use of offsets, instead of hardcoded memory addresses. Thus, it would be really neat if we somehow obtained a fixed-point* address in the server's machine, from where we would reference all of our target addresses using suitable offsets. Sounds familiar right?
+
+Looking back at step 2, we did just that; we extracted some stack addresses from the server's machine. Thus, we have a powerful tool to aid our cause. Using the `printf` vulnerability:
+```c
+  if(password_md5 == NULL) {
+    printf("HTTP/1.1 401 Unauthorized\r\n");
+    printf("WWW-Authenticate: Basic realm=\"");
+    printf("Invalid user: ");
+    printf(auth_username);
+    printf("\"\r\n\r\n");
+
+    free(auth_decoded);
+    return 0;
+  }
+```
+with a payload like this:
+`%x [29 more times %x] %x` 
+ we were able to acquire:
+ * the address of `main()` in the **text** segment (our  desired *fixed-point*)
+* the canary
+
+Up to that moment, happiness and excitement was filling the team members' hearts as they were about to do something that every human being shall experience at least once in their life - a buffer overflow.
+
+We calculated the offset between the .text addresses of the `main`and `serve_ultimate` functions in GDB.  
+We had our fixed-point in the server's machine.
+Adding the offset to the fixed-point would produce the `serve_ultimate` address in the server's machine.
+We also experimented with the amount of dummy `\xBB` bytes required in the beginning of our payload, so that the canary and the return address would be aligned in the correct position inside the program's stack. 
+All what was left to do was to plug in the canary, send the request to the server, and conquer the YS13 HOF. Easy-peasy, right?
+
+No.
+Sadly for us, when we tried to execute our almost-flawless plan, we figured out that while the canary was properly established, everything after the canary in our payload didn't exist, as if the canary was the end of our payload... :thinking:
+After ~~a good night's sleep~~ a 6-hour marathon past midnight, we found out a workaround: we would substitute 0x00 (NULL) bytes in the payload with 0x26 (&) bytes. Then we'd let this God-given loop do the rest for us:
+```c
+  for (char* c = post_data; *c != '\0'; c++)
+    if (*c == '&' || *c == '=')
+      *c = '\0';
+```
+what this loop does, is essentially substitute 0x26 with 0x00 **after** the `strcpy` call, aka after we install our payload in the program's stack.
+
+After this sudden realization, success was inevitable. We ran our final exploit and the result we got was:
+```
+<pre>
+Thanks for the coins, I knew I can do business with you.
+
+Your ssh access to the server should be restored, you can find your
+files under /var/backup/ (see 'backup.log' for a list).
+
+To avoid losing your files again, hire us!
+5l0ppy 8uff00n5 can help you fix all your security issues.
+Use the code tmmt8pN_lj4 to get 20% off our usual rates!
+</pre>
+```
+Thus, we figured out that the "Plan X" files reside under `/var/backup/`.
+
 ## Step 4
 
 For step 4 we used the script of the previous step and adjusted the final payload, so that we can read any file we want, by just passing the file-path, as an cmd-argument.
