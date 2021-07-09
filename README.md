@@ -143,17 +143,19 @@ To exploit the script we followed 2 different approaches. Both of them was based
 The first approach used the `send_file()` function from the server-app source code. This was a work-around for the ASLR mitigation that messed up system's offset, but it was not perfect still. By executing the send file we could not get an `HTTP OK` response so the output was never returned. This could be easily solved by just calling the `serve_ultimate()` before we overwrite the stack to call the `send_file()` routine. The payload was the same as in step 3 but with some extra small steps. Specifically we made sure that after `serve_ultimate()` the program would return into `send_file()` and we could set the argument in the stack, by just adding its address in the next 4 bytes and the actual argument in the last bytes of the payload. We found out how to do this and why it should work in [one of the buffer overflow slides' references](https://css.csail.mit.edu/6.858/2014/readings/return-to-libc.pdf). 
 
 The stack after loading our payload was something like the following:
+```
           |                     |                     |          |                         |                    |     |
 top stack | payload from step 3 | return to send_file | fake eip | send_file_argument_addr | send_file argument | ... | bottom of the stack
           |                     |                     |          |                         |                    |     |
-
+```
 The second approach was to try executing libc code, specifically the `system()` routine in to execute shell code and pass a `cat` command. At first we could not find a fixed address in the programm since ASLR, messed all the offsets we acquired from __gcc__, run in __linux02__ machine. After a couple of tries we found a common fixed address between gcc-run and normal run of the server, we calculated the offset from the known stack address and found the libc return address we needed. At this point, we could execute arbitary code and get the terminal-output in the http response. FULL POWUH <3 <3  
 
 Again the stack would look like that:
+```
           |                     |                     |          |                      |                 |     |
 top stack | payload from step 3 | return to system    | fake eip | system_argument_addr | system argument | ... | bottom of the stack
           |                     |                     |          |                      |                 |     |
-
+```
 
 So after all that we displayed the containing of z.log and got
 
